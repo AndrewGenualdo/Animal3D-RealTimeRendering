@@ -24,30 +24,19 @@
 
 #version 450
 
-uniform sampler2D uImage00; //scene
-uniform sampler2D uImage01; //bloom
-
-uniform float uExposure = 1.0f;
-uniform bool bloom = true;
-
 in vec4 vTexcoord_atlas;
-out vec4 FragColor;
+
+uniform vec4 uColor;
+
+uniform sampler2D uImage00;
+
+layout (location = 0) out vec4 rtFragColor;
 
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	/*float gamma = 2.2f;
-    vec3 hdrColor = texture(uImage00, vTexcoord_atlas.xy).rgb;
-	vec3 bloomColor = texture(uImage01, vTexcoord_atlas.xy).rgb;
+	// DUMMY OUTPUT: all fragments are OPAQUE YELLOW
+//	rtFragColor = vec4(1.0, 1.0, 0.0, 1.0);
 
-	if(bloom) hdrColor += bloomColor;
-
-	//tone mapping
-    vec3 result = vec3(1.0) - exp(-hdrColor * uExposure);
-
-    //gamma correction
-    result = pow(result, vec3(1.0 / gamma));
-
-    FragColor = vec4(result, 1.0);
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);*/
+	vec4 col = texture(uImage00, vTexcoord_atlas.xy);
+	rtFragColor = col * (vec4(1.0f) - uColor);
 }

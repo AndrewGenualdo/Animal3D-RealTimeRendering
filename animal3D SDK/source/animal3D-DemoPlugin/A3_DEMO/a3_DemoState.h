@@ -94,14 +94,14 @@ enum a3_DemoState_ObjectMaxCount
 
 	demoStateMaxCount_drawDataBuffer = 1,
 	demoStateMaxCount_vertexArray = 4,
-	demoStateMaxCount_drawable = 16,
+	demoStateMaxCount_drawable = 17,
 
 	demoStateMaxCount_shaderProgram = 32,
 	demoStateMaxCount_uniformBuffer = 8,
 
 	demoStateMaxCount_texture = 32,
 
-	demoStateMaxCount_framebuffer = 16,
+	demoStateMaxCount_framebuffer = 19,
 };
 
 	
@@ -218,6 +218,8 @@ struct a3_DemoState
 			a3_VertexArrayDescriptor
 				vao_position_color[1],						// VAO for vertex format with position and color
 				vao_position[1];							// VAO for vertex format with only position
+			a3_VertexArrayDescriptor
+				vao_fsq[1];									// VAO for fullscreen quad
 		};
 	};
 
@@ -238,6 +240,8 @@ struct a3_DemoState
 				draw_unit_plane_z[1];						// unit plane (width = height = 1) with Z normal
 			a3_VertexDrawable
 				draw_teapot[1];								// can't not have a Utah teapot
+			a3_VertexDrawable
+				draw_fsq[1];
 		};
 	};
 
@@ -322,7 +326,10 @@ struct a3_DemoState
 				fbo_c16_szEighth[3],	// set of eighth-screen-sized 16-bit color buffers
 				fbo_c32f[1],			// 32-bit float color buffer
 				fbo_d32[1],				// 32-bit depth buffer
-				fbo_c16x4_d24s8[1];		// 16-bit color buffer (4 targets) and depth-stencil buffer (24/8)
+				fbo_c16x4_d24s8[1],		// 16-bit color buffer (4 targets) and depth-stencil buffer (24/8)
+
+				fbo_hdr[1],				// 32-bit float color buffer (2 targets)
+				fbo_bloomPingPong[2];	// 32-bit float color buffer
 		};
 	};
 

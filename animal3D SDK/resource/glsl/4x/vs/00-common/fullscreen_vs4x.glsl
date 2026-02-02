@@ -18,36 +18,21 @@
 	animal3D SDK: Minimal 3D Animation Framework
 	By Daniel S. Buckstein
 	
-	drawTexture_fs4x.glsl
-	Output texture blended with color.
+	passthru_vs4x.glsl
+	Pass-thru GLSL vertex shader. Outputs raw position attribute.
 */
 
 #version 450
 
-uniform sampler2D uImage00; //scene
-uniform sampler2D uImage01; //bloom
-
-uniform float uExposure = 1.0f;
-uniform bool bloom = true;
-
-in vec4 vTexcoord_atlas;
-out vec4 FragColor;
+out vec2 vUV;
 
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	/*float gamma = 2.2f;
-    vec3 hdrColor = texture(uImage00, vTexcoord_atlas.xy).rgb;
-	vec3 bloomColor = texture(uImage01, vTexcoord_atlas.xy).rgb;
+    vec2 pos = vec2(
+        (gl_VertexID << 1) & 2,
+        gl_VertexID & 2
+    );
 
-	if(bloom) hdrColor += bloomColor;
-
-	//tone mapping
-    vec3 result = vec3(1.0) - exp(-hdrColor * uExposure);
-
-    //gamma correction
-    result = pow(result, vec3(1.0 / gamma));
-
-    FragColor = vec4(result, 1.0);
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);*/
+    vUV = pos;
+    gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
 }

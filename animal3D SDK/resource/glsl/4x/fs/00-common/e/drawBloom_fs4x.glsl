@@ -1,0 +1,70 @@
+/*
+	Copyright 2011-2026 Daniel S. Buckstein
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
+
+/*
+	animal3D SDK: Minimal 3D Animation Framework
+	By Daniel S. Buckstein
+	
+	drawTexture_fs4x.glsl
+	Output texture blended with color.
+*/
+
+#version 450
+
+uniform sampler2D uImage;
+uniform bool uHorizontal;
+
+
+out vec4 FragColor;
+in vec2 vUV;
+
+
+const float[5] weights = {
+	0.227027,
+    0.1945946,
+    0.1216216,
+    0.054054,
+    0.016216
+};
+
+//based on https://learnopengl.com/Advanced-Lighting/Bloom
+
+void main()
+{
+	vec2 texelSize = 1.0 / textureSize(uImage, 0);
+
+    vec3 result = texture(uImage, vUV).rgb * weights[0];
+
+	if(uHorizontal) 
+	{
+		for(int i = 1; i < 5; ++i)
+        {
+            result += texture(uImage, vUV + vec2(texelSize.x * i, 0.0)).rgb * weights[i];
+            result += texture(uImage, vUV - vec2(texelSize.x * i, 0.0)).rgb * weights[i];
+        }
+	}
+	else 
+	{
+		for(int i = 1; i < 5; ++i)
+        {
+            result += texture(uImage, vUV + vec2(0.0, texelSize.y * i)).rgb * weights[i];
+            result += texture(uImage, vUV - vec2(0.0, texelSize.y * i)).rgb * weights[i];
+        }
+	}
+    
+
+    FragColor = vec4(result, 1.0);
+}

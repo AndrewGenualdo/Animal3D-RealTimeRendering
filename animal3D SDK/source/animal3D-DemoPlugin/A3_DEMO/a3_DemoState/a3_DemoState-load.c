@@ -246,6 +246,7 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		a3proceduralCreateDescriptorCapsule(proceduralShapes + 4, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 1.0f, 32, 12, 4);
 		a3proceduralCreateDescriptorTorus(proceduralShapes + 5, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 0.25f, 32, 24);
 		a3proceduralCreateDescriptorCone(proceduralShapes + 6, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 1.0, 32, 1, 1);
+
 		for (i = 0; i < proceduralShapesCount; ++i)
 		{
 			a3proceduralGenerateGeometryData(proceduralShapesData + i, proceduralShapes + i, 0);
@@ -262,6 +263,8 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		// done
 		a3fileStreamClose(fileStream);
 	}
+
+	
 
 
 	// GPU data upload process: 
@@ -342,6 +345,61 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	currentDrawable = demoState->draw_teapot;
 	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, loadedModelsData + 0, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
 
+	
+
+
+	static float fsqVertices[] = {
+		// positions        // texcoords
+		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f,  0.0f, 1.0f
+	};
+
+	//vertex format descriptor
+	//a3_VertexFormatDescriptor fsqVertexFormat = { 0 };
+	//fsqVertexFormat.vertexNumAttribs = 2;
+	//fsqVertexFormat.vertexSize = 5 * sizeof(float);
+
+	//position
+	//fsqVertexFormat.attribType[a3attrib_position] = a3attrib_float;
+	//fsqVertexFormat.attribOffset[a3attrib_position] = 0;
+	//fsqVertexFormat.attribElements[a3attrib_position] = 3;
+	//fsqVertexFormat.attribSize[a3attrib_position] = 3 * sizeof(float);
+
+	//texcoord0
+	//fsqVertexFormat.attribType[a3attrib_texcoord0] = a3attrib_float;
+	//fsqVertexFormat.attribOffset[a3attrib_texcoord0] = 3 * sizeof(float);
+	//fsqVertexFormat.attribElements[a3attrib_texcoord0] = 2;
+	//fsqVertexFormat.attribSize[a3attrib_texcoord0] = 2 * sizeof(float);
+
+
+	static int fsqIndices[] = { 0, 1, 2, 0, 2, 3 };
+
+	//index format descriptor
+	//a3_IndexFormatDescriptor fsqIndexFormat = { 0 };
+	//fsqIndexFormat.indexType = a3attrib_int;
+	//fsqIndexFormat.indexSize = 6 * sizeof(int);
+
+	//geometry data
+	//a3_GeometryData fsqGeometry = { 0 };
+	//fsqGeometry.vertexFormat[0] = fsqVertexFormat;
+	//fsqGeometry.indexFormat[0] = fsqIndexFormat;
+	//fsqGeometry.primType = a3prim_triangles;
+	//fsqGeometry.numVertices = 4;
+	//fsqGeometry.numIndices = 6;
+	//fsqGeometry.data = fsqVertices;
+	//fsqGeometry.attribData[0] = 
+	//fsqGeometry.indexData = fsqIndices;
+	 
+	
+	
+	//vao = demoState->vao_fsq;
+	//currentDrawable = demoState->draw_fsq;
+	//a3geometryGenerateVertexArray(vao, "vao:fsq", &fsqGeometry, vbo_ibo, 0);
+	//a3vertexDrawableCreate(currentDrawable, vao, a3prim_triangles, 0, fsqGeometry.numIndices);
+	
+
 
 	// release data when done
 	for (i = 0; i < displayShapesCount; ++i)
@@ -415,7 +473,8 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 				passTexcoord_transform_vs[1],
 				passTangentBasis_transform_vs[1],
 				passTexcoord_transform_instanced_vs[1],
-				passTangentBasis_transform_instanced_vs[1];
+				passTangentBasis_transform_instanced_vs[1],
+				fullscreen_vs[1];
 		/*	// 01-pipeline
 			a3_DemoStateShader
 				passTangentBasis_shadowCoord_transform_vs[1],
@@ -436,7 +495,9 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 			a3_DemoStateShader
 				drawTexture_fs[1],
 				drawLambert_fs[1],
-				drawPhong_fs[1];
+				drawPhong_fs[1],
+				drawBloom_fs[1],
+				drawHDR_fs[1];
 		/*	// 01-pipeline
 			a3_DemoStateShader
 				postBright_fs[1],
@@ -461,6 +522,7 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 			{ { { 0 },	"shdr-vs:pass-tb-trans",			a3shader_vertex  ,	1,{ A3_DEMO_VS"00-common/passTangentBasis_transform_vs4x.glsl" } } },
 			{ { { 0 },	"shdr-vs:pass-tex-trans-inst",		a3shader_vertex  ,	1,{ A3_DEMO_VS"00-common/passTexcoord_transform_instanced_vs4x.glsl" } } },
 			{ { { 0 },	"shdr-vs:pass-tb-trans-inst",		a3shader_vertex  ,	1,{ A3_DEMO_VS"00-common/passTangentBasis_transform_instanced_vs4x.glsl" } } },
+			{ { { 0 },	"shdr-vs:fullscreen",				a3shader_vertex  ,  1,{ A3_DEMO_VS"00-common/fullscreen_vs4x.glsl" } } },
 		/*	// 01-pipeline
 			{ { { 0 },	"shdr-vs:pass-tb-sc-trans",			a3shader_vertex  ,	1,{ A3_DEMO_VS"01-pipeline/passTangentBasis_shadowCoord_transform_vs4x.glsl" } } }, // ****DECODE
 			{ { { 0 },	"shdr-vs:pass-tb-sc-trans-inst",	a3shader_vertex  ,	1,{ A3_DEMO_VS"01-pipeline/passTangentBasis_shadowCoord_transform_instanced_vs4x.glsl" } } },*/
@@ -476,11 +538,11 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 			{ { { 0 },	"shdr-fs:draw-col-unif",			a3shader_fragment,	1,{ A3_DEMO_FS"drawColorUnif_fs4x.glsl" } } },
 			{ { { 0 },	"shdr-fs:draw-col-attr",			a3shader_fragment,	1,{ A3_DEMO_FS"drawColorAttrib_fs4x.glsl" } } },
 			// 00-common
-			{ { { 0 },	"shdr-fs:draw-tex",					a3shader_fragment,	1,{ A3_DEMO_FS"00-common/drawHDR_fs4x.glsl" } } },
-			{ { { 0 },	"shdr-fs:draw-Lambert",				a3shader_fragment,	2,{ A3_DEMO_FS"00-common/drawLambert_fs4x.glsl",
-																					A3_DEMO_FS"00-common/utilCommon_fs4x.glsl",} } },
-			{ { { 0 },	"shdr-fs:draw-Phong",				a3shader_fragment,	2,{ A3_DEMO_FS"00-common/drawPhong_fs4x.glsl",
-																					A3_DEMO_FS"00-common/utilCommon_fs4x.glsl",} } },
+			{ { { 0 },	"shdr-fs:draw-tex",					a3shader_fragment,	1,{ A3_DEMO_FS"00-common/drawTexture_fs4x.glsl" } } },
+			{ { { 0 },	"shdr-fs:draw-Lambert",				a3shader_fragment,	2,{ A3_DEMO_FS"00-common/drawLambert_fs4x.glsl", A3_DEMO_FS"00-common/utilCommon_fs4x.glsl",} } },
+			{ { { 0 },	"shdr-fs:draw-Phong",				a3shader_fragment,	2,{ A3_DEMO_FS"00-common/drawPhong_fs4x.glsl", A3_DEMO_FS"00-common/utilCommon_fs4x.glsl",} } },
+			{ { { 0 },	"shdr-fs:draw-Bloom",				a3shader_fragment,	1,{ A3_DEMO_FS"00-common/drawBloom_fs4x.glsl" } } },
+			{ { { 0 },	"shdr-fs:draw-HDR",					a3shader_fragment,  1,{ A3_DEMO_FS"00-common/drawHDR_fs4x.glsl" } } },
 		/*	// 01-pipeline
 			{ { { 0 },	"shdr-fs:post-bright",				a3shader_fragment,	1,{ A3_DEMO_FS"01-pipeline/postBright_fs4x.glsl" } } }, // ****DECODE
 			{ { { 0 },	"shdr-fs:post-blur",				a3shader_fragment,	1,{ A3_DEMO_FS"01-pipeline/postBlur_fs4x.glsl" } } }, // ****DECODE
@@ -508,6 +570,8 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 			shaderPtr->filePath, shaderPtr->srcCount);
 		if (flag == 0)
 			printf("\n ^^^^ SHADER %u '%s' FAILED TO COMPILE \n\n", i, shaderPtr->shader->handle->name);
+
+		printf("\n'%i': %s", i, shaderPtr->shader->handle->name);
 	}
 
 
@@ -593,6 +657,25 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.passTangentBasis_transform_instanced_vs->shader);
 	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawTangentBasis_gs->shader);
 	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawColorAttrib_fs->shader);
+
+	//bright pass to extract bright areas for bloom
+	currentDemoProg = demoState->prog_postBright;
+	a3shaderProgramCreate(currentDemoProg->program, "prog:post-bright");
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.passTexcoord_transform_vs->shader);
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawBloom_fs->shader);
+
+	//blur pass (blur bright areas)
+	currentDemoProg = demoState->prog_postBlur;
+	a3shaderProgramCreate(currentDemoProg->program, "prog:post-blur");
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.passTexcoord_transform_vs->shader);
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawBloom_fs->shader);
+
+	//blend pass (combine blurred highlights with original image)
+	currentDemoProg = demoState->prog_postBlend;
+	a3shaderProgramCreate(currentDemoProg->program, "prog:post-blend");
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.passTexcoord_transform_vs->shader);
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawHDR_fs->shader);
+
 
 /*	// 01-pipeline programs: 
 	// Phong shading with shadow mapping
@@ -842,7 +925,9 @@ void a3demo_loadTextures(a3_DemoState* demoState)
 void a3demo_loadFramebuffers(a3_DemoState* demoState)
 {
 	// create framebuffers and change their texture settings if need be
+
 	a3_Framebuffer* fbo;
+
 	a3ui32 i, j;
 
 	// frame sizes
@@ -870,11 +955,80 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 	//		-> set of full-size MRT-color only
 	//		-> set of half/quarter/eighth-size color only
 	// initialize framebuffers: MRT, color and depth formats, size
+
+	//2
+	for (i = 0; i < 2; ++i)
+	{
+		fbo = &demoState->fbo_bloomPingPong[i];
+		a3framebufferCreate(fbo, "fbo:bloomPingPong",
+			1, a3fbo_colorRGBA32F, a3fbo_depthDisable,
+			frameWidth1, frameHeight1);
+	}
+	
+
+	//1
+	fbo = demoState->fbo_hdr;
+	a3framebufferCreate(fbo, "fbo:hdr",
+		2, a3fbo_colorRGBA32F, a3fbo_depthDisable,
+		frameWidth1, frameHeight1);
+
+	//1
 	fbo = demoState->fbo_c16x4_d24s8;
 	a3framebufferCreate(fbo, "fbo:c16x4;d24s8",
 		4, a3fbo_colorRGBA16, a3fbo_depth24_stencil8,
 		frameWidth1, frameHeight1);
-	//...
+
+	//1
+	fbo = demoState->fbo_d32;
+	a3framebufferCreate(fbo, "fbo:d32",
+		1, a3fbo_colorDisable, a3fbo_depth32,
+		frameWidth1, frameHeight1);
+
+	//1
+	fbo = demoState->fbo_c32f;
+	a3framebufferCreate(fbo, "fbo:c32f",
+		1, a3fbo_colorRGBA32F, a3fbo_depthDisable,
+		frameWidth1, frameHeight1);
+
+	//3
+	for (i = 0; i < 3; ++i) 
+	{
+		fbo = &demoState->fbo_c16_szEighth[i];
+		a3framebufferCreate(fbo, "fbo:c16_szEighth",
+			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
+			frameWidth8, frameHeight8);
+	}
+	
+
+	//3
+	for (i = 0; i < 3; ++i)
+	{
+		fbo = &demoState->fbo_c16_szQuarter[i];
+		a3framebufferCreate(fbo, "fbo:c16_szQuarter",
+			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
+			frameWidth4, frameHeight4);
+	}
+	
+
+	//3
+	for (i = 0; i < 3; ++i) 
+	{
+		fbo = &demoState->fbo_c16_szHalf[i];
+		a3framebufferCreate(fbo, "fbo:c16_szHalf",
+			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
+			frameWidth2, frameHeight2);
+	}
+	
+
+	//4
+	for (i = 0; i < 4; ++i)
+	{
+		fbo = &demoState->fbo_c16x4[i];
+		a3framebufferCreate(fbo, "fbo:c16x4",
+			4, a3fbo_colorRGBA16, a3fbo_depthDisable,
+			frameWidth1, frameHeight1);
+	}
+	
 
 
 	// change texture settings for all framebuffers

@@ -44,6 +44,7 @@
 #else	// !_WIN32
 #include <OpenGL/gl3.h>
 #endif	// _WIN32
+#include <stdio.h>
 
 
 //-----------------------------------------------------------------------------
@@ -255,6 +256,10 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 	// select pipeline algorithm
 	glDisable(GL_BLEND);
 
+	a3framebufferActivate(demoState->fbo_hdr);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 	// forward shading algorithms
 	for (currentSceneObject = demoMode->obj_sphere, endSceneObject = demoMode->obj_ground;
 		currentSceneObject <= endSceneObject; ++currentSceneObject)
@@ -285,6 +290,25 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, &j);
 		a3vertexDrawableActivateAndRender(drawable[j]);
 	}
+
+	a3framebufferDeactivate();
+
+	a3framebufferActivate(NULL);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentDemoProgram = demoState->prog_postBright;
+	a3shaderProgramActivate(currentDemoProgram->program);
+
+	// bind HDR scene texture (unit 0)
+	//a3_Texture hdrInputTex = { 0 };
+	//hdrInputTex.handle[0] = *demoState->fbo_hdr->handle;
+	//hdrInputTex.width = demoState->fbo_hdr->frameWidth;
+	//hdrInputTex.height = demoState->fbo_hdr->frameHeight;
+	//hdrInputTex.internalFormat = GL_RGBA32F;
+	//hdrInputTex.internalType = GL_FLOAT;
+	//a3textureActivate(&hdrInputTex, a3tex_unit00);
+
+	// render fullscreen quad to capture bright areas
+	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
 
 	// stop using stencil
 	if (demoState->stencilTest)
@@ -346,12 +370,16 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 
 	// overlays with no depth
 	glDisable(GL_DEPTH_TEST);
+	
 
 	// hidden volumes
 	if (demoState->displayHiddenVolumes)
 	{
 
 	}
+
+	
+	
 
 	// superimpose axes
 	// draw coordinate axes in front of everything
@@ -378,6 +406,105 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 			a3demo_drawModelSimple(modelViewProjectionMat.m, viewProjectionMat.m, modelMat.m, currentDemoProgram);
 		}
 	}
+
+
+	//a3framebufferActivate(&demoState->fbo_bloomPingPong[0]);
+	//a3framebufferActivate(NULL);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//currentDemoProgram = demoState->prog_postBright;
+	//a3shaderProgramActivate(currentDemoProgram->program);
+	//
+	//// bind HDR scene texture (unit 0)
+	//a3_Texture hdrInputTex = {0};
+	//hdrInputTex.handle[0] = *demoState->fbo_hdr->handle;
+	//hdrInputTex.width = demoState->fbo_hdr->frameWidth;
+	//hdrInputTex.height = demoState->fbo_hdr->frameHeight;
+	//hdrInputTex.internalFormat = GL_RGBA32F;
+	//hdrInputTex.internalType = GL_FLOAT;
+	//a3textureActivate(&hdrInputTex, a3tex_unit00);
+	//
+	//// render fullscreen quad to capture bright areas
+	//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+
+	//a3framebufferDeactivate();
+
+	// horizontal blur
+	/*a3framebufferActivate(&demoState->fbo_bloomPingPong[1]);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentDemoProgram = demoState->prog_postBlur;
+	a3shaderProgramActivate(currentDemoProgram->program);
+
+	//bind input texture
+	a3_Texture tempTex = { 0 };
+	tempTex.handle[0] = *demoState->fbo_bloomPingPong[0].handle;
+	tempTex.width = demoState->fbo_bloomPingPong[0].frameWidth;
+	tempTex.height = demoState->fbo_bloomPingPong[0].frameHeight;
+	tempTex.internalFormat = GL_RGBA32F;
+	tempTex.internalType = GL_FLOAT;
+
+	a3textureActivate(&tempTex, a3tex_unit00);
+	
+
+	//set horizontal uniform
+	a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 1 });
+
+	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+	a3framebufferDeactivate();
+
+
+	//same for vertical
+	a3framebufferActivate(&demoState->fbo_bloomPingPong[0]);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentDemoProgram = demoState->prog_postBlur;
+	a3shaderProgramActivate(currentDemoProgram->program);
+
+	//bind input texture
+	a3_Texture tempTex2 = { 0 };
+	tempTex2.handle[0] = *demoState->fbo_bloomPingPong[1].handle;
+	tempTex2.width = demoState->fbo_bloomPingPong[1].frameWidth;
+	tempTex2.height = demoState->fbo_bloomPingPong[1].frameHeight;
+	tempTex2.internalFormat = GL_RGBA32F;
+	tempTex2.internalType = GL_FLOAT;
+	a3textureActivate(&tempTex2, a3tex_unit00);
+
+	//set vertical uniform
+	a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 0 });
+
+	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+	a3framebufferDeactivate();*/
+
+
+
+	// bloom blend pass: combine HDR scene + blurred bloom
+	/*a3framebufferActivate(NULL); // render to default framebuffer (screen)
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentDemoProgram = demoState->prog_postBlend;
+	a3shaderProgramActivate(currentDemoProgram->program);
+
+	// bind HDR scene texture (unit 0)
+	a3_Texture hdrTex = { 0 };
+	hdrTex.handle[0] = *demoState->fbo_hdr->handle;
+	hdrTex.width = demoState->fbo_hdr->frameWidth;
+	hdrTex.height = demoState->fbo_hdr->frameHeight;
+	hdrTex.internalFormat = GL_RGBA32F;
+	hdrTex.internalType = GL_FLOAT;
+	a3textureActivate(&hdrTex, a3tex_unit00);
+
+	// bind blurred bloom texture (unit 1)
+	a3_Texture bloomTex = { 0 };
+	bloomTex.handle[0] = *demoState->fbo_bloomPingPong[0].handle;
+	bloomTex.width = demoState->fbo_bloomPingPong[0].frameWidth;
+	bloomTex.height = demoState->fbo_bloomPingPong[0].frameHeight;
+	bloomTex.internalFormat = GL_RGBA32F;
+	bloomTex.internalType = GL_FLOAT;
+	a3textureActivate(&bloomTex, a3tex_unit01);
+
+	// render fullscreen quad
+	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+
+	// done
+	a3framebufferDeactivate();*/
+	//printf("\working");
 }
 
 
