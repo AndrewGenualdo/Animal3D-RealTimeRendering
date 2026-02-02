@@ -294,8 +294,9 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 	a3framebufferDeactivate();
 
 	a3framebufferActivate(NULL);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	currentDemoProgram = demoState->prog_postBright;
+
 	a3shaderProgramActivate(currentDemoProgram->program);
 
 	// bind HDR scene texture (unit 0)
@@ -308,8 +309,10 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 	//a3textureActivate(&hdrInputTex, a3tex_unit00);
 
 	// render fullscreen quad to capture bright areas
+	//this is the thing that doesn't work
 	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
 
+	a3shaderProgramDeactivate();
 	// stop using stencil
 	if (demoState->stencilTest)
 		glDisable(GL_STENCIL_TEST);
@@ -338,6 +341,7 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 			const a3f32 size[1] = { 0.0625f };
 
 			currentDemoProgram = demoState->prog_drawTangentBasis;
+
 			a3shaderProgramActivate(currentDemoProgram->program);
 
 			// projection matrix
