@@ -190,6 +190,7 @@ void a3postproc_render(a3_DemoState const* demoState, a3_DemoMode1_PostProc cons
 		demoState->draw_unit_cone,
 		demoState->draw_teapot,
 		demoState->draw_unit_plane_z,
+		demoState->draw_fsq,
 	};
 
 	// temp texture pointers

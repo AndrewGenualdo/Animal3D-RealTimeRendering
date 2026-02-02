@@ -357,47 +357,47 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	};
 
 	//vertex format descriptor
-	//a3_VertexFormatDescriptor fsqVertexFormat = { 0 };
-	//fsqVertexFormat.vertexNumAttribs = 2;
-	//fsqVertexFormat.vertexSize = 5 * sizeof(float);
+	a3_VertexFormatDescriptor fsqVertexFormat = { 0 };
+	fsqVertexFormat.vertexNumAttribs = 2;
+	fsqVertexFormat.vertexSize = 5 * sizeof(float);
 
 	//position
-	//fsqVertexFormat.attribType[a3attrib_position] = a3attrib_float;
-	//fsqVertexFormat.attribOffset[a3attrib_position] = 0;
-	//fsqVertexFormat.attribElements[a3attrib_position] = 3;
-	//fsqVertexFormat.attribSize[a3attrib_position] = 3 * sizeof(float);
+	fsqVertexFormat.attribType[a3attrib_position] = a3attrib_float;
+	fsqVertexFormat.attribOffset[a3attrib_position] = 0;
+	fsqVertexFormat.attribElements[a3attrib_position] = 3;
+	fsqVertexFormat.attribSize[a3attrib_position] = 3 * sizeof(float);
 
 	//texcoord0
-	//fsqVertexFormat.attribType[a3attrib_texcoord0] = a3attrib_float;
-	//fsqVertexFormat.attribOffset[a3attrib_texcoord0] = 3 * sizeof(float);
-	//fsqVertexFormat.attribElements[a3attrib_texcoord0] = 2;
-	//fsqVertexFormat.attribSize[a3attrib_texcoord0] = 2 * sizeof(float);
+	fsqVertexFormat.attribType[a3attrib_texcoord0] = a3attrib_float;
+	fsqVertexFormat.attribOffset[a3attrib_texcoord0] = 3 * sizeof(float);
+	fsqVertexFormat.attribElements[a3attrib_texcoord0] = 2;
+	fsqVertexFormat.attribSize[a3attrib_texcoord0] = 2 * sizeof(float);
 
 
 	static int fsqIndices[] = { 0, 1, 2, 0, 2, 3 };
 
 	//index format descriptor
-	//a3_IndexFormatDescriptor fsqIndexFormat = { 0 };
-	//fsqIndexFormat.indexType = a3attrib_int;
-	//fsqIndexFormat.indexSize = 6 * sizeof(int);
+	a3_IndexFormatDescriptor fsqIndexFormat = { 0 };
+	fsqIndexFormat.indexType = a3attrib_int;
+	fsqIndexFormat.indexSize = 6 * sizeof(int);
 
 	//geometry data
-	//a3_GeometryData fsqGeometry = { 0 };
-	//fsqGeometry.vertexFormat[0] = fsqVertexFormat;
-	//fsqGeometry.indexFormat[0] = fsqIndexFormat;
-	//fsqGeometry.primType = a3prim_triangles;
-	//fsqGeometry.numVertices = 4;
-	//fsqGeometry.numIndices = 6;
-	//fsqGeometry.data = fsqVertices;
+	a3_GeometryData fsqGeometry = { 0 };
+	fsqGeometry.vertexFormat[0] = fsqVertexFormat;
+	fsqGeometry.indexFormat[0] = fsqIndexFormat;
+	fsqGeometry.primType = a3prim_triangles;
+	fsqGeometry.numVertices = 4;
+	fsqGeometry.numIndices = 6;
+	fsqGeometry.data = fsqVertices;
 	//fsqGeometry.attribData[0] = 
-	//fsqGeometry.indexData = fsqIndices;
+	fsqGeometry.indexData = fsqIndices;
 	 
 	
 	
-	//vao = demoState->vao_fsq;
-	//currentDrawable = demoState->draw_fsq;
-	//a3geometryGenerateVertexArray(vao, "vao:fsq", &fsqGeometry, vbo_ibo, 0);
-	//a3vertexDrawableCreate(currentDrawable, vao, a3prim_triangles, 0, fsqGeometry.numIndices);
+	vao = demoState->vao_fsq;
+	currentDrawable = demoState->draw_fsq;
+	a3geometryGenerateVertexArray(vao, "vao:fsq", &fsqGeometry, vbo_ibo, 0);
+	a3vertexDrawableCreate(currentDrawable, vao, a3prim_triangles, 0, fsqGeometry.numIndices);
 	
 
 
@@ -1127,6 +1127,10 @@ void a3demo_loadValidate(a3_DemoState* demoState)
 	currentVAO = demoState->vao_tangentbasis_texcoord;
 	currentVAO->vertexBuffer = currentBuff;
 	a3_refreshDrawable_internal(demoState->draw_teapot, currentVAO, currentBuff);
+
+	currentVAO = demoState->vao_fsq;
+	currentVAO->vertexBuffer = currentBuff;
+	a3_refreshDrawable_internal(demoState->draw_fsq, currentVAO, currentBuff);
 
 	a3demo_initDummyDrawable_internal(demoState);
 }
