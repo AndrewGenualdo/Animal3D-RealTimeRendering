@@ -44,8 +44,8 @@ const float[5] weights = {
 
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	/*vec2 texelSize = 1.0 / textureSize(uImage00, 0);
+	//FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	vec2 texelSize = 1.0 / textureSize(uImage00, 0);
 
     vec3 result = texture(uImage00, vTexcoord_atlas.xy).rgb * weights[0];
 
@@ -68,5 +68,6 @@ void main()
     
 
     FragColor = vec4(result, 1.0);
-	FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);*/
+	//FragColor = vec4(vTexcoord_atlas.x, vTexcoord_atlas.y, 0, 1.0f);
+	//FragColor = texture(uImage00, vTexcoord_atlas.xy);
 }

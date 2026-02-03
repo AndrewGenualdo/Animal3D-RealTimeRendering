@@ -46,6 +46,9 @@ void a3intro_input_keyCharPress(a3_DemoState const* demoState, a3_DemoMode0_Intr
 	{
 		// toggle render program
 		a3demoCtrlCasesLoop(demoMode->renderMode, intro_renderMode_max, 'k', 'j');
+
+		// switch bloom phase count
+		a3demoCtrlCasesLoop(demoMode->bloomPhase, intro_phase_max, '7', '6');
 	}
 }
 

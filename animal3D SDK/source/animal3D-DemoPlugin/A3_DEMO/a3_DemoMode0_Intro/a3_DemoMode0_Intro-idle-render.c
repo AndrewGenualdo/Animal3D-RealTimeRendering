@@ -62,12 +62,27 @@ void a3intro_render_controls(a3_DemoState const* demoState, a3_DemoMode0_Intro c
 		"Phong shading",
 	};
 
+	a3byte const* bloomPhaseName[intro_phase_max] = {
+		"Default",
+		"Extract Bright Colors",
+		"Horizontal Blur",
+		"Vertical Blur",
+		"HDR (No Bloom)",
+		"HDR (With Bloom)"
+	};
+
 	// modes
 	a3_DemoMode0_Intro_RenderMode const renderMode = demoMode->renderMode;
+
+	a3_DemoMode0_Intro_Phase const bloomPhase = demoMode->bloomPhase;
 
 	// lighting modes
 	a3textDraw(text, textAlign, textOffset += textOffsetDelta, textDepth, col.r, col.g, col.b, col.a,
 		"    Rendering mode (%u / %u) ('j' | 'k'): %s", renderMode + 1, intro_renderMode_max, renderModeName[renderMode]);
+
+	//phase count
+	a3textDraw(text, textAlign, textOffset += textOffsetDelta, textDepth, col.r, col.g, col.b, col.a,
+		"    Bloom Phase (%u / %u) ('6' | '7'): %s", bloomPhase, intro_phase_max - 1, bloomPhaseName[bloomPhase]);
 }
 
 
@@ -166,6 +181,7 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 
 	// target info
 	a3_DemoMode0_Intro_RenderMode const renderMode = demoMode->renderMode;
+	a3_DemoMode0_Intro_Phase const bloomPhase = demoMode->bloomPhase;
 
 	// final model matrix and full matrix stack
 	a3mat4 projectionMat = activeCamera->projectorMatrixStackPtr->projectionMat;
@@ -255,8 +271,8 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 
 	// select pipeline algorithm
 	glDisable(GL_BLEND);
-
-	a3framebufferActivate(demoState->fbo_hdr);
+	glEnable(GL_DEPTH_TEST);
+	a3framebufferActivate(bloomPhase > intro_phaseNone ? demoState->fbo_hdr : NULL);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -290,29 +306,118 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, &j);
 		a3vertexDrawableActivateAndRender(drawable[j]);
 	}
-
+	
 	a3framebufferDeactivate();
+	//a3framebufferBindColorTexture(&demoState->fbo_bloomPingPong[0], a3tex_unit00, 0);
+	
+	if (bloomPhase >= intro_phaseExtract) {
+		a3framebufferActivate(bloomPhase > intro_phaseExtract ? &demoState->fbo_bloomPingPong[0] : NULL);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		currentDemoProgram = demoState->prog_postBright;
+		a3shaderProgramActivate(currentDemoProgram->program);
 
-	a3framebufferActivate(NULL);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	currentDemoProgram = demoState->prog_postBright;
+		// bind HDR scene texture (unit 0)
+		glBindTextureUnit(0, demoState->fbo_hdr->colorTextureHandle[0]);
 
-	a3shaderProgramActivate(currentDemoProgram->program);
+		// render fullscreen quad to capture bright areas
+		//this is the thing that doesn't work
+		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+		glBegin(GL_QUADS);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+		glEnd();
 
-	// bind HDR scene texture (unit 0)
-	//a3_Texture hdrInputTex = { 0 };
-	//hdrInputTex.handle[0] = *demoState->fbo_hdr->handle;
-	//hdrInputTex.width = demoState->fbo_hdr->frameWidth;
-	//hdrInputTex.height = demoState->fbo_hdr->frameHeight;
-	//hdrInputTex.internalFormat = GL_RGBA32F;
-	//hdrInputTex.internalType = GL_FLOAT;
-	//a3textureActivate(&hdrInputTex, a3tex_unit00);
+		a3framebufferDeactivate();
+	}
+	
+	//a3framebufferBindColorTexture(&demoState->fbo_bloomPingPong[1], a3tex_unit00, 0);
 
-	// render fullscreen quad to capture bright areas
-	//this is the thing that doesn't work
-	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+	// horizontal blur
+	//a3framebufferActivate(NULL);
 
-	a3shaderProgramDeactivate();
+	if (bloomPhase >= intro_phaseBloomHoriz) {
+		a3framebufferActivate(bloomPhase > intro_phaseBloomHoriz ? &demoState->fbo_bloomPingPong[1] : NULL);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		currentDemoProgram = demoState->prog_postBlur;
+		a3shaderProgramActivate(currentDemoProgram->program);
+
+		//bind input texture
+		glBindTextureUnit(0, demoState->fbo_bloomPingPong[0].colorTextureHandle[0]);
+
+		//set horizontal uniform
+		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 1 });
+
+		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+		glBegin(GL_QUADS);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+		glEnd();
+
+		a3framebufferDeactivate();
+	}
+	
+
+	
+	
+	//a3framebufferBindColorTexture(NULL, a3tex_unit00, 0);
+
+	//same for vertical
+	//a3framebufferActivate(NULL);
+
+	if (bloomPhase >= intro_phaseBloomVert) {
+		a3framebufferActivate(bloomPhase > intro_phaseBloomVert ? &demoState->fbo_bloomPingPong[0] : NULL);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		currentDemoProgram = demoState->prog_postBlur;
+		a3shaderProgramActivate(currentDemoProgram->program);
+
+		//bind input texture
+		glBindTextureUnit(0, demoState->fbo_bloomPingPong[1].colorTextureHandle[0]);
+
+
+		//set vertical uniform
+		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 0 });
+
+		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+		glBegin(GL_QUADS);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+		glEnd();
+		a3framebufferDeactivate();
+	}
+
+	
+	if (bloomPhase >= intro_phaseHDR) {
+		a3framebufferActivate(NULL);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		currentDemoProgram = demoState->prog_postBlend;
+		a3shaderProgramActivate(currentDemoProgram->program);
+
+		glBindTextureUnit(0, demoState->fbo_hdr->colorTextureHandle[0]);
+		glBindTextureUnit(1, demoState->fbo_bloomPingPong[0].colorTextureHandle[0]);
+
+		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { bloomPhase == intro_enableBloom ? 1 : 0 });
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+		glEnd();
+		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+
+		a3framebufferDeactivate();
+	}
+
+	
+
+
+	//a3shaderProgramDeactivate();
 	// stop using stencil
 	if (demoState->stencilTest)
 		glDisable(GL_STENCIL_TEST);

@@ -28,19 +28,19 @@ uniform sampler2D uImage00; //scene
 uniform sampler2D uImage01; //bloom
 
 uniform float uExposure = 1.0f;
-uniform bool bloom = true;
+uniform int uIndex = 1; //bloom toggle (1 = enabled, 0 = disabled)
 
 in vec4 vTexcoord_atlas;
 out vec4 FragColor;
 
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
-	/*float gamma = 2.2f;
+	//FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+	float gamma = 2.2;
     vec3 hdrColor = texture(uImage00, vTexcoord_atlas.xy).rgb;
 	vec3 bloomColor = texture(uImage01, vTexcoord_atlas.xy).rgb;
 
-	if(bloom) hdrColor += bloomColor;
+	if(uIndex == 1) hdrColor += bloomColor;
 
 	//tone mapping
     vec3 result = vec3(1.0) - exp(-hdrColor * uExposure);
@@ -49,5 +49,6 @@ void main()
     result = pow(result, vec3(1.0 / gamma));
 
     FragColor = vec4(result, 1.0);
-	FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);*/
+	//FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+	//FragColor = vec4(hdrColor, 1.0);
 }

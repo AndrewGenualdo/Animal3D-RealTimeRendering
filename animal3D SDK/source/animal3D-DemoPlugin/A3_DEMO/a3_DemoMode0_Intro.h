@@ -45,6 +45,7 @@ extern "C"
 #else	// !__cplusplus
 typedef struct a3_DemoMode0_Intro						a3_DemoMode0_Intro;
 typedef enum a3_DemoMode0_Intro_RenderMode				a3_DemoMode0_Intro_RenderMode;
+typedef enum a3_DemoMode0_Intro_Phase					a3_DemoMode0_Intro_Phase;
 #endif	// __cplusplus
 
 
@@ -59,6 +60,19 @@ enum a3_DemoMode0_Intro_RenderMode
 	intro_renderModePhong,		// Phong shading model
 
 	intro_renderMode_max
+};
+
+//bloom phases
+enum a3_DemoMode0_Intro_Phase
+{
+	intro_phaseNone,
+	intro_phaseExtract,
+	intro_phaseBloomHoriz,
+	intro_phaseBloomVert,
+	intro_phaseHDR,
+	intro_enableBloom,
+
+	intro_phase_max
 };
 
 
@@ -78,6 +92,9 @@ struct a3_DemoMode0_Intro
 {
 	// render mode
 	a3_DemoMode0_Intro_RenderMode renderMode;
+
+	// phase count
+	a3_DemoMode0_Intro_Phase bloomPhase;
 
 	// scene hierarchy and data
 	a3_Hierarchy hierarchy_scene[1];

@@ -969,7 +969,7 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 	//1
 	fbo = demoState->fbo_hdr;
 	a3framebufferCreate(fbo, "fbo:hdr",
-		2, a3fbo_colorRGBA32F, a3fbo_depthDisable,
+		2, a3fbo_colorRGBA32F, a3fbo_depth24_stencil8,
 		frameWidth1, frameHeight1);
 
 	//1
