@@ -328,8 +328,9 @@ struct a3_DemoState
 				fbo_d32[1],				// 32-bit depth buffer
 				fbo_c16x4_d24s8[1],		// 16-bit color buffer (4 targets) and depth-stencil buffer (24/8)
 
-				fbo_hdr[1],				// 32-bit float color buffer (2 targets)
-				fbo_bloomPingPong[2];	// 32-bit float color buffer
+				fbo_hdr[1],				// 32-bit float color buffer (2 targets) and depth-stencil buffer (24/8)
+				fbo_bloomPingPong[2],	// 32-bit float color buffer
+				fbo_brightness[1];		// 32-bit float color buffer (2 targets)
 		};
 	};
 

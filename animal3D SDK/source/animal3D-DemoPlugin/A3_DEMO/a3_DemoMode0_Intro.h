@@ -67,8 +67,7 @@ enum a3_DemoMode0_Intro_Phase
 {
 	intro_phaseNone,
 	intro_phaseExtract,
-	intro_phaseBloomHoriz,
-	intro_phaseBloomVert,
+	intro_phaseBlur,
 	intro_phaseHDR,
 	intro_enableBloom,
 

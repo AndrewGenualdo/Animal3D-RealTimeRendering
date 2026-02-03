@@ -65,8 +65,7 @@ void a3intro_render_controls(a3_DemoState const* demoState, a3_DemoMode0_Intro c
 	a3byte const* bloomPhaseName[intro_phase_max] = {
 		"Default",
 		"Extract Bright Colors",
-		"Horizontal Blur",
-		"Vertical Blur",
+		"Blur",
 		"HDR (No Bloom)",
 		"HDR (With Bloom)"
 	};
@@ -99,19 +98,19 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 
 	// RGB
 	const a3vec4 rgba4[] = {
-		{ 1.00f, 0.00f, 0.00f, 1.00f },	// red
+		{ 40.00f, 0.00f, 0.00f, 1.00f },	// red
 		{ 1.00f, 0.25f, 0.00f, 1.00f },
 		{ 1.00f, 0.50f, 0.00f, 1.00f },	// orange
 		{ 1.00f, 0.75f, 0.00f, 1.00f },
 		{ 1.00f, 1.00f, 0.00f, 1.00f },	// yellow
 		{ 0.75f, 1.00f, 0.00f, 1.00f },
-		{ 0.50f, 1.00f, 0.00f, 1.00f },	// lime
+		{ 20.0f, 40.00f, 0.00f, 1.00f },	// lime
 		{ 0.25f, 1.00f, 0.00f, 1.00f },
 		{ 0.00f, 1.00f, 0.00f, 1.00f },	// green
 		{ 0.00f, 1.00f, 0.25f, 1.00f },
 		{ 0.00f, 1.00f, 0.50f, 1.00f },	// aqua
 		{ 0.00f, 1.00f, 0.75f, 1.00f },
-		{ 0.00f, 1.00f, 1.00f, 1.00f },	// cyan
+		{ 0.00f, 40.00f, 40.00f, 1.00f },	// cyan
 		{ 0.00f, 0.75f, 1.00f, 1.00f },
 		{ 0.00f, 0.50f, 1.00f, 1.00f },	// sky
 		{ 0.00f, 0.25f, 1.00f, 1.00f },
@@ -308,98 +307,63 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 	}
 	
 	a3framebufferDeactivate();
-	//a3framebufferBindColorTexture(&demoState->fbo_bloomPingPong[0], a3tex_unit00, 0);
-	
-	if (bloomPhase >= intro_phaseExtract) {
-		a3framebufferActivate(bloomPhase > intro_phaseExtract ? &demoState->fbo_bloomPingPong[0] : NULL);
+	// render fullscreen quad to capture bright areas
+	if (bloomPhase >= intro_phaseExtract) 
+	{
+		a3framebufferActivate(bloomPhase > intro_phaseExtract ? &demoState->fbo_brightness[0] : NULL);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		currentDemoProgram = demoState->prog_postBright;
 		a3shaderProgramActivate(currentDemoProgram->program);
 
-		// bind HDR scene texture (unit 0)
+		//bind scene texture
 		glBindTextureUnit(0, demoState->fbo_hdr->colorTextureHandle[0]);
 
-		// render fullscreen quad to capture bright areas
-		//this is the thing that doesn't work
-		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
 		glBegin(GL_QUADS);
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
 		glEnd();
-
 		a3framebufferDeactivate();
 	}
-	
-	//a3framebufferBindColorTexture(&demoState->fbo_bloomPingPong[1], a3tex_unit00, 0);
 
-	// horizontal blur
-	//a3framebufferActivate(NULL);
-
-	if (bloomPhase >= intro_phaseBloomHoriz) {
-		a3framebufferActivate(bloomPhase > intro_phaseBloomHoriz ? &demoState->fbo_bloomPingPong[1] : NULL);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//blur
+	a3ui32 blurPasses = 10;
+	if (bloomPhase >= intro_phaseBlur) 
+	{
+		
 		currentDemoProgram = demoState->prog_postBlur;
 		a3shaderProgramActivate(currentDemoProgram->program);
 
-		//bind input texture
-		glBindTextureUnit(0, demoState->fbo_bloomPingPong[0].colorTextureHandle[0]);
+		for (i = 0; i < blurPasses; i++)
+		{
+			a3framebufferActivate((bloomPhase == intro_phaseBlur && i == blurPasses - 1) ? NULL : &demoState->fbo_bloomPingPong[(i + 1) % 2]);
+			a3shaderProgramActivate(currentDemoProgram->program);
+			//set horizontal uniform
+			a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { (i + 1) % 2 });
 
-		//set horizontal uniform
-		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 1 });
+			glBindTextureUnit(0, i == 0 ? demoState->fbo_brightness[0].colorTextureHandle[0] : demoState->fbo_bloomPingPong[i % 2].colorTextureHandle[0]);
 
-		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-		glBegin(GL_QUADS);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-		glEnd();
-
-		a3framebufferDeactivate();
-	}
-	
-
-	
-	
-	//a3framebufferBindColorTexture(NULL, a3tex_unit00, 0);
-
-	//same for vertical
-	//a3framebufferActivate(NULL);
-
-	if (bloomPhase >= intro_phaseBloomVert) {
-		a3framebufferActivate(bloomPhase > intro_phaseBloomVert ? &demoState->fbo_bloomPingPong[0] : NULL);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		currentDemoProgram = demoState->prog_postBlur;
-		a3shaderProgramActivate(currentDemoProgram->program);
-
-		//bind input texture
-		glBindTextureUnit(0, demoState->fbo_bloomPingPong[1].colorTextureHandle[0]);
-
-
-		//set vertical uniform
-		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 0 });
-
-		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-		glBegin(GL_QUADS);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-		glEnd();
-		a3framebufferDeactivate();
+			glBegin(GL_QUADS);
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+			glEnd();
+			a3framebufferDeactivate();
+		}
 	}
 
-	
-	if (bloomPhase >= intro_phaseHDR) {
+	//hdr + bloom
+	if (bloomPhase >= intro_phaseHDR) 
+	{
 		a3framebufferActivate(NULL);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		currentDemoProgram = demoState->prog_postBlend;
 		a3shaderProgramActivate(currentDemoProgram->program);
 
 		glBindTextureUnit(0, demoState->fbo_hdr->colorTextureHandle[0]);
-		glBindTextureUnit(1, demoState->fbo_bloomPingPong[0].colorTextureHandle[0]);
+		glBindTextureUnit(1, demoState->fbo_bloomPingPong[blurPasses % 2].colorTextureHandle[0]);
 
 		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { bloomPhase == intro_enableBloom ? 1 : 0 });
 
@@ -409,15 +373,9 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
 		glEnd();
-		//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-
 		a3framebufferDeactivate();
 	}
 
-	
-
-
-	//a3shaderProgramDeactivate();
 	// stop using stencil
 	if (demoState->stencilTest)
 		glDisable(GL_STENCIL_TEST);
@@ -515,105 +473,6 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 			a3demo_drawModelSimple(modelViewProjectionMat.m, viewProjectionMat.m, modelMat.m, currentDemoProgram);
 		}
 	}
-
-
-	//a3framebufferActivate(&demoState->fbo_bloomPingPong[0]);
-	//a3framebufferActivate(NULL);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//currentDemoProgram = demoState->prog_postBright;
-	//a3shaderProgramActivate(currentDemoProgram->program);
-	//
-	//// bind HDR scene texture (unit 0)
-	//a3_Texture hdrInputTex = {0};
-	//hdrInputTex.handle[0] = *demoState->fbo_hdr->handle;
-	//hdrInputTex.width = demoState->fbo_hdr->frameWidth;
-	//hdrInputTex.height = demoState->fbo_hdr->frameHeight;
-	//hdrInputTex.internalFormat = GL_RGBA32F;
-	//hdrInputTex.internalType = GL_FLOAT;
-	//a3textureActivate(&hdrInputTex, a3tex_unit00);
-	//
-	//// render fullscreen quad to capture bright areas
-	//a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-
-	//a3framebufferDeactivate();
-
-	// horizontal blur
-	/*a3framebufferActivate(&demoState->fbo_bloomPingPong[1]);
-	glClear(GL_COLOR_BUFFER_BIT);
-	currentDemoProgram = demoState->prog_postBlur;
-	a3shaderProgramActivate(currentDemoProgram->program);
-
-	//bind input texture
-	a3_Texture tempTex = { 0 };
-	tempTex.handle[0] = *demoState->fbo_bloomPingPong[0].handle;
-	tempTex.width = demoState->fbo_bloomPingPong[0].frameWidth;
-	tempTex.height = demoState->fbo_bloomPingPong[0].frameHeight;
-	tempTex.internalFormat = GL_RGBA32F;
-	tempTex.internalType = GL_FLOAT;
-
-	a3textureActivate(&tempTex, a3tex_unit00);
-	
-
-	//set horizontal uniform
-	a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 1 });
-
-	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-	a3framebufferDeactivate();
-
-
-	//same for vertical
-	a3framebufferActivate(&demoState->fbo_bloomPingPong[0]);
-	glClear(GL_COLOR_BUFFER_BIT);
-	currentDemoProgram = demoState->prog_postBlur;
-	a3shaderProgramActivate(currentDemoProgram->program);
-
-	//bind input texture
-	a3_Texture tempTex2 = { 0 };
-	tempTex2.handle[0] = *demoState->fbo_bloomPingPong[1].handle;
-	tempTex2.width = demoState->fbo_bloomPingPong[1].frameWidth;
-	tempTex2.height = demoState->fbo_bloomPingPong[1].frameHeight;
-	tempTex2.internalFormat = GL_RGBA32F;
-	tempTex2.internalType = GL_FLOAT;
-	a3textureActivate(&tempTex2, a3tex_unit00);
-
-	//set vertical uniform
-	a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { 0 });
-
-	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-	a3framebufferDeactivate();*/
-
-
-
-	// bloom blend pass: combine HDR scene + blurred bloom
-	/*a3framebufferActivate(NULL); // render to default framebuffer (screen)
-	glClear(GL_COLOR_BUFFER_BIT);
-	currentDemoProgram = demoState->prog_postBlend;
-	a3shaderProgramActivate(currentDemoProgram->program);
-
-	// bind HDR scene texture (unit 0)
-	a3_Texture hdrTex = { 0 };
-	hdrTex.handle[0] = *demoState->fbo_hdr->handle;
-	hdrTex.width = demoState->fbo_hdr->frameWidth;
-	hdrTex.height = demoState->fbo_hdr->frameHeight;
-	hdrTex.internalFormat = GL_RGBA32F;
-	hdrTex.internalType = GL_FLOAT;
-	a3textureActivate(&hdrTex, a3tex_unit00);
-
-	// bind blurred bloom texture (unit 1)
-	a3_Texture bloomTex = { 0 };
-	bloomTex.handle[0] = *demoState->fbo_bloomPingPong[0].handle;
-	bloomTex.width = demoState->fbo_bloomPingPong[0].frameWidth;
-	bloomTex.height = demoState->fbo_bloomPingPong[0].frameHeight;
-	bloomTex.internalFormat = GL_RGBA32F;
-	bloomTex.internalType = GL_FLOAT;
-	a3textureActivate(&bloomTex, a3tex_unit01);
-
-	// render fullscreen quad
-	a3vertexDrawableActivateAndRender(demoState->draw_fsq);
-
-	// done
-	a3framebufferDeactivate();*/
-	//printf("\working");
 }
 
 

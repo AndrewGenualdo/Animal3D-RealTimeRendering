@@ -497,7 +497,8 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 				drawLambert_fs[1],
 				drawPhong_fs[1],
 				drawBloom_fs[1],
-				drawHDR_fs[1];
+				drawHDR_fs[1],
+				drawBrightness_fs[1];
 		/*	// 01-pipeline
 			a3_DemoStateShader
 				postBright_fs[1],
@@ -543,6 +544,7 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 			{ { { 0 },	"shdr-fs:draw-Phong",				a3shader_fragment,	2,{ A3_DEMO_FS"00-common/drawPhong_fs4x.glsl", A3_DEMO_FS"00-common/utilCommon_fs4x.glsl",} } },
 			{ { { 0 },	"shdr-fs:draw-Bloom",				a3shader_fragment,	1,{ A3_DEMO_FS"00-common/drawBloom_fs4x.glsl" } } },
 			{ { { 0 },	"shdr-fs:draw-HDR",					a3shader_fragment,  1,{ A3_DEMO_FS"00-common/drawHDR_fs4x.glsl" } } },
+			{ { { 0 },	"shdr-fs:draw-Brightness",			a3shader_fragment,	1,{ A3_DEMO_FS"00-common/drawBrightness_fs4x.glsl" } } },
 		/*	// 01-pipeline
 			{ { { 0 },	"shdr-fs:post-bright",				a3shader_fragment,	1,{ A3_DEMO_FS"01-pipeline/postBright_fs4x.glsl" } } }, // ****DECODE
 			{ { { 0 },	"shdr-fs:post-blur",				a3shader_fragment,	1,{ A3_DEMO_FS"01-pipeline/postBlur_fs4x.glsl" } } }, // ****DECODE
@@ -662,7 +664,7 @@ void a3demo_loadShaders(a3_DemoState *demoState)
 	currentDemoProg = demoState->prog_postBright;
 	a3shaderProgramCreate(currentDemoProg->program, "prog:post-bright");
 	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.passTexcoord_transform_vs->shader);
-	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawBloom_fs->shader);
+	a3shaderProgramAttachShader(currentDemoProg->program, shaderList.drawBrightness_fs->shader);
 
 	//blur pass (blur bright areas)
 	currentDemoProg = demoState->prog_postBlur;
@@ -956,6 +958,12 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 	//		-> set of half/quarter/eighth-size color only
 	// initialize framebuffers: MRT, color and depth formats, size
 
+	//1
+	fbo = demoState->fbo_brightness;
+	a3framebufferCreate(fbo, "fbo:brightness",
+		2, a3fbo_colorRGBA32F, a3fbo_depthDisable,
+		frameWidth1, frameHeight1);
+
 	//2
 	for (i = 0; i < 2; ++i)
 	{
@@ -964,7 +972,6 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 			1, a3fbo_colorRGBA32F, a3fbo_depthDisable,
 			frameWidth1, frameHeight1);
 	}
-	
 
 	//1
 	fbo = demoState->fbo_hdr;
@@ -998,7 +1005,6 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
 			frameWidth8, frameHeight8);
 	}
-	
 
 	//3
 	for (i = 0; i < 3; ++i)
@@ -1008,7 +1014,6 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
 			frameWidth4, frameHeight4);
 	}
-	
 
 	//3
 	for (i = 0; i < 3; ++i) 
@@ -1018,7 +1023,6 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 			1, a3fbo_colorRGBA16, a3fbo_depthDisable,
 			frameWidth2, frameHeight2);
 	}
-	
 
 	//4
 	for (i = 0; i < 4; ++i)
@@ -1028,7 +1032,6 @@ void a3demo_loadFramebuffers(a3_DemoState* demoState)
 			4, a3fbo_colorRGBA16, a3fbo_depthDisable,
 			frameWidth1, frameHeight1);
 	}
-	
 
 
 	// change texture settings for all framebuffers

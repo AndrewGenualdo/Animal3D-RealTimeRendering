@@ -29,22 +29,16 @@ uniform int uIndex; //bool for horizontal (true = 1) or vertical (false = 0)
 
 
 out vec4 FragColor;
+
 in vec4 vTexcoord_atlas;
 
 
-const float[5] weights = {
-	0.227027,
-    0.1945946,
-    0.1216216,
-    0.054054,
-    0.016216
-};
+const float[5] weights = {0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162};
 
 //based on https://learnopengl.com/Advanced-Lighting/Bloom
 
 void main()
 {
-	//FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 	vec2 texelSize = 1.0 / textureSize(uImage00, 0);
 
     vec3 result = texture(uImage00, vTexcoord_atlas.xy).rgb * weights[0];
