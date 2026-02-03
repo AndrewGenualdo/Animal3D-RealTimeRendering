@@ -311,4 +311,6 @@ a3ret a3proceduralInternalGenerateTorus(a3_GeometryData *geomData, const a3_Proc
 }
 
 
+
+
 #endif	// __ANIMAL3D_PROCEDURALGEOMETRY_C

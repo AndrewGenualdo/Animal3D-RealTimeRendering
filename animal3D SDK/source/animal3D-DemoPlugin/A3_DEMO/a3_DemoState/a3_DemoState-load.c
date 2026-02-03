@@ -80,6 +80,7 @@
 #include "../a3_DemoState.h"
 
 #include <stdio.h>
+#include "../../../animal3D/a3geometry/a3_ProceduralGeometry.c"
 
 
 //-----------------------------------------------------------------------------
@@ -188,9 +189,11 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	a3_GeometryData displayShapesData[2] = { 0 };
 	a3_GeometryData proceduralShapesData[7] = { 0 };
 	a3_GeometryData loadedModelsData[1] = { 0 };
+	a3_GeometryData fsqData[1] = {0};
 	const a3ui32 displayShapesCount = a3demoArrayLen(displayShapesData);
 	const a3ui32 proceduralShapesCount = a3demoArrayLen(proceduralShapesData);
 	const a3ui32 loadedModelsCount = a3demoArrayLen(loadedModelsData);
+	const a3ui32 fsqCount = a3demoArrayLen(fsqData);
 
 	// common index format
 	a3_IndexFormatDescriptor sceneCommonIndexFormat[1] = { 0 };
@@ -215,6 +218,10 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		for (i = 0; i < loadedModelsCount; ++i)
 			a3fileStreamReadObject(fileStream, loadedModelsData + i, (a3_FileStreamReadFunc)a3geometryLoadDataBinary);
 
+		//fsq
+		for (i = 0; i < fsqCount; ++i)
+			a3fileStreamReadObject(fileStream, fsqData + i, (a3_FileStreamReadFunc)a3geometryLoadDataBinary);
+
 		// done
 		a3fileStreamClose(fileStream);
 	}
@@ -227,6 +234,7 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		const a3_DemoStateLoadedModel loadedShapes[a3demoArrayLen(loadedModelsData)] = {
 			{ A3_DEMO_OBJ"teapot/teapot.obj", downscale20x_y2z_x2y.mm, a3model_calculateVertexTangents },
 		};
+		a3_ProceduralGeometryDescriptor fsqShape[a3demoArrayLen(fsqData)] = {a3geomShape_fsq};
 
 		// static scene procedural objects
 		//	(axes, grid)
@@ -247,6 +255,11 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		a3proceduralCreateDescriptorTorus(proceduralShapes + 5, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 0.25f, 32, 24);
 		a3proceduralCreateDescriptorCone(proceduralShapes + 6, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 1.0, 32, 1, 1);
 
+		//fsq
+		fsqShape->fParams[fWidth] = 1.0f;
+		fsqShape->fParams[fHeight] = 1.0f;
+		a3proceduralSetDescriptorFlags(&fsqShape[0], a3geomFlag_texcoords);
+
 		for (i = 0; i < proceduralShapesCount; ++i)
 		{
 			a3proceduralGenerateGeometryData(proceduralShapesData + i, proceduralShapes + i, 0);
@@ -258,6 +271,12 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		{
 			a3modelLoadOBJ(loadedModelsData + i, loadedShapes[i].modelFilePath, loadedShapes[i].flag, loadedShapes[i].transform);
 			a3fileStreamWriteObject(fileStream, loadedModelsData + i, (a3_FileStreamWriteFunc)a3geometrySaveDataBinary);
+		}
+
+		for (i = 0; i < fsqCount; ++i)
+		{
+			a3proceduralGenerateGeometryData(&fsqData[0] + i, &fsqShape[0], 0);
+			a3fileStreamWriteObject(fileStream, fsqData + i, (a3_FileStreamWriteFunc)a3geometrySaveDataBinary);
 		}
 
 		// done
@@ -291,6 +310,13 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		numVerts += loadedModelsData[i].numVertices;
 	}
 
+	//fsq
+	for (i = 0; i < fsqCount; ++i)
+	{
+		sharedVertexStorage += a3geometryGetVertexBufferSize(fsqData + i);
+		numVerts += fsqData[i].numVertices;
+	}
+
 
 	// common index format required for shapes that share vertex formats
 	a3geometryCreateIndexFormat(sceneCommonIndexFormat, numVerts);
@@ -301,6 +327,8 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		sharedIndexStorage += a3indexFormatGetStorageSpaceRequired(sceneCommonIndexFormat, proceduralShapesData[i].numIndices);
 	for (i = 0; i < loadedModelsCount; ++i)
 		sharedIndexStorage += a3indexFormatGetStorageSpaceRequired(sceneCommonIndexFormat, loadedModelsData[i].numIndices);
+	for(i = 0; i < fsqCount; ++i)
+		sharedIndexStorage += a3indexFormatGetStorageSpaceRequired(sceneCommonIndexFormat, fsqData[i].numIndices);
 
 	// create shared buffer
 	vbo_ibo = demoState->vbo_staticSceneObjectDrawBuffer;
@@ -396,8 +424,8 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	
 	vao = demoState->vao_fsq;
 	currentDrawable = demoState->draw_fsq;
-	a3geometryGenerateVertexArray(vao, "vao:fsq", &fsqGeometry, vbo_ibo, 0);
-	a3vertexDrawableCreate(currentDrawable, vao, a3prim_triangles, 0, fsqGeometry.numIndices);
+	a3geometryGenerateVertexArray(vao, "vao:fsq", fsqData + 0, vbo_ibo, sharedVertexStorage);
+	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, fsqData + 0, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
 	
 
 
@@ -408,7 +436,8 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		a3geometryReleaseData(proceduralShapesData + i);
 	for (i = 0; i < loadedModelsCount; ++i)
 		a3geometryReleaseData(loadedModelsData + i);
-
+	for (i = 0; i < fsqCount; ++i)
+		a3geometryReleaseData(fsqData + i);
 
 	// dummy
 	a3demo_initDummyDrawable_internal(demoState);

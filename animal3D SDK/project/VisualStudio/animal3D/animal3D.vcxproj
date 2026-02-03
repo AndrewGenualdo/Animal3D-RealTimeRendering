@@ -61,6 +61,7 @@
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Cone.inl" />
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Cylinder.inl" />
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Diamond.inl" />
+    <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Fsq.inl" />
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Octahedron.inl" />
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Plane.inl" />
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Pyramid.inl" />

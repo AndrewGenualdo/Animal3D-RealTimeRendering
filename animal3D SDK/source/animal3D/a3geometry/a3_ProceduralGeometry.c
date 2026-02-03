@@ -73,6 +73,7 @@ a3ret a3proceduralInternalGenerateDiamond(a3_GeometryData *geomData, const a3_Pr
 a3ret a3proceduralInternalGenerateCylinder(a3_GeometryData *geomData, const a3_ProceduralGeometryDescriptor *geom);
 a3ret a3proceduralInternalGenerateCapsule(a3_GeometryData *geomData, const a3_ProceduralGeometryDescriptor *geom);
 a3ret a3proceduralInternalGenerateTorus(a3_GeometryData *geomData, const a3_ProceduralGeometryDescriptor *geom);
+a3ret a3proceduralInternalGenerateFsq(a3_GeometryData* geomData, const a3_ProceduralGeometryDescriptor* geom);
 a3ret a3proceduralInternalGenerateAxes(a3_GeometryData *geomData, const a3_ProceduralGeometryDescriptor *geom);
 
 // dummy for the ones that are not finished
@@ -102,6 +103,7 @@ inline a3ret a3proceduralInternalGenerateData(a3_GeometryData *geomData, const a
 		a3proceduralInternalGenerateCylinder,
 		a3proceduralInternalGenerateCapsule,
 		a3proceduralInternalGenerateTorus,
+		a3proceduralInternalGenerateFsq,
 		a3proceduralInternalGenerateAxes,
 	}, generateFunc = generateFuncList[geom->shape];
 	const a3_GeometryData reset = { 0 };
@@ -456,6 +458,7 @@ inline a3ubyte *a3proceduralInternalStoreIndex(a3ubyte *index, const a3ui32 inde
 #include "_internal/a3_ProceduralGeometry_Cylinder.inl"
 #include "_internal/a3_ProceduralGeometry_Capsule.inl"
 #include "_internal/a3_ProceduralGeometry_Torus.inl"
+#include "_internal/a3_ProceduralGeometry_Fsq.inl"
 #include "_internal/a3_ProceduralGeometry_Axes.inl"
 
 

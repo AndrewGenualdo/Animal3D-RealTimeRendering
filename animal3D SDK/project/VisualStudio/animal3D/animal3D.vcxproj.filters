@@ -193,5 +193,8 @@
     <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Triangle.inl">
       <Filter>Source Files\common\a3geometry\_internal</Filter>
     </None>
+    <None Include="..\..\..\source\animal3D\a3geometry\_internal\a3_ProceduralGeometry_Fsq.inl">
+      <Filter>Source Files\common\a3geometry\_internal</Filter>
+    </None>
   </ItemGroup>
 </Project>

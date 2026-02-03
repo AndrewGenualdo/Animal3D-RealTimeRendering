@@ -65,6 +65,7 @@ extern "C"
 		a3geomShape_cylinder,	// indexed
 		a3geomShape_capsule,	// indexed
 		a3geomShape_torus,		// indexed
+		a3geomShape_fsq,		// indexed?
 		a3geomShape_axes,		// indexed, can hold color
 	};
 
