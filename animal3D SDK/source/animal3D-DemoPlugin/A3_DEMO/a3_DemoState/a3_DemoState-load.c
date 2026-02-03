@@ -234,7 +234,7 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		const a3_DemoStateLoadedModel loadedShapes[a3demoArrayLen(loadedModelsData)] = {
 			{ A3_DEMO_OBJ"teapot/teapot.obj", downscale20x_y2z_x2y.mm, a3model_calculateVertexTangents },
 		};
-		a3_ProceduralGeometryDescriptor fsqShape[a3demoArrayLen(fsqData)] = {a3geomShape_fsq};
+		a3_ProceduralGeometryDescriptor fsqShape[a3demoArrayLen(fsqData)] = { a3geomShape_none };
 
 		// static scene procedural objects
 		//	(axes, grid)
@@ -256,9 +256,8 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 		a3proceduralCreateDescriptorCone(proceduralShapes + 6, a3geomFlag_texcoords_normals, a3geomAxis_x, 1.0f, 1.0, 32, 1, 1);
 
 		//fsq
-		fsqShape->fParams[fWidth] = 1.0f;
-		fsqShape->fParams[fHeight] = 1.0f;
-		a3proceduralSetDescriptorFlags(&fsqShape[0], a3geomFlag_texcoords);
+		fsqShape->shape = a3geomShape_fsq;
+		a3proceduralSetDescriptorFlags(fsqShape, a3geomFlag_texcoords);
 
 		for (i = 0; i < proceduralShapesCount; ++i)
 		{
@@ -275,7 +274,7 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 
 		for (i = 0; i < fsqCount; ++i)
 		{
-			a3proceduralGenerateGeometryData(&fsqData[0] + i, &fsqShape[0], 0);
+			a3proceduralGenerateGeometryData(fsqData + i, fsqShape + i, 0);
 			a3fileStreamWriteObject(fileStream, fsqData + i, (a3_FileStreamWriteFunc)a3geometrySaveDataBinary);
 		}
 
@@ -371,56 +370,9 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	vao = demoState->vao_tangentbasis_texcoord;
 	a3geometryGenerateVertexArray(vao, "vao:tb+tc", loadedModelsData + 0, vbo_ibo, sharedVertexStorage);
 	currentDrawable = demoState->draw_teapot;
+
 	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, loadedModelsData + 0, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
 
-	
-
-
-	static float fsqVertices[] = {
-		// positions        // texcoords
-		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
-		-1.0f,  1.0f, 0.0f,  0.0f, 1.0f
-	};
-
-	//vertex format descriptor
-	a3_VertexFormatDescriptor fsqVertexFormat = { 0 };
-	fsqVertexFormat.vertexNumAttribs = 2;
-	fsqVertexFormat.vertexSize = 5 * sizeof(float);
-
-	//position
-	fsqVertexFormat.attribType[a3attrib_position] = a3attrib_float;
-	fsqVertexFormat.attribOffset[a3attrib_position] = 0;
-	fsqVertexFormat.attribElements[a3attrib_position] = 3;
-	fsqVertexFormat.attribSize[a3attrib_position] = 3 * sizeof(float);
-
-	//texcoord0
-	fsqVertexFormat.attribType[a3attrib_texcoord0] = a3attrib_float;
-	fsqVertexFormat.attribOffset[a3attrib_texcoord0] = 3 * sizeof(float);
-	fsqVertexFormat.attribElements[a3attrib_texcoord0] = 2;
-	fsqVertexFormat.attribSize[a3attrib_texcoord0] = 2 * sizeof(float);
-
-
-	static int fsqIndices[] = { 0, 1, 2, 0, 2, 3 };
-
-	//index format descriptor
-	a3_IndexFormatDescriptor fsqIndexFormat = { 0 };
-	fsqIndexFormat.indexType = a3attrib_int;
-	fsqIndexFormat.indexSize = 6 * sizeof(int);
-
-	//geometry data
-	a3_GeometryData fsqGeometry = { 0 };
-	fsqGeometry.vertexFormat[0] = fsqVertexFormat;
-	fsqGeometry.indexFormat[0] = fsqIndexFormat;
-	fsqGeometry.primType = a3prim_triangles;
-	fsqGeometry.numVertices = 4;
-	fsqGeometry.numIndices = 6;
-	fsqGeometry.data = fsqVertices;
-	//fsqGeometry.attribData[0] = 
-	fsqGeometry.indexData = fsqIndices;
-	 
-	
 	
 	vao = demoState->vao_fsq;
 	currentDrawable = demoState->draw_fsq;

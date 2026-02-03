@@ -108,6 +108,7 @@ inline a3ret a3proceduralInternalGenerateData(a3_GeometryData *geomData, const a
 	}, generateFunc = generateFuncList[geom->shape];
 	const a3_GeometryData reset = { 0 };
 	*geomData = reset;
+
 	return generateFunc(geomData, geom);
 }
 

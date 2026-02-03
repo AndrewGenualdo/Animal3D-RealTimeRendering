@@ -305,8 +305,8 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, &j);
 		a3vertexDrawableActivateAndRender(drawable[j]);
 	}
+	a3vertexDrawableActivateAndRender(drawable[j]);
 	
-	a3ui32 blurPasses = 10;
 	a3framebufferDeactivate();
 	// render fullscreen quad to capture bright areas
 	if (bloomPhase >= intro_phaseExtract) 
@@ -319,21 +319,16 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 		//bind scene texture
 		a3framebufferBindColorTexture(demoState->fbo_hdr, a3tex_unit00, 0);
 
-		/*glBegin(GL_QUADS);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-		glEnd();*/
 		a3vertexDrawableActivateAndRender(demoState->draw_fsq);
+		
 
 		a3framebufferDeactivate();
 	}
 
 	//blur
+	a3ui32 blurPasses = 10;
 	if (bloomPhase >= intro_phaseBlur) 
 	{
-		
 		currentDemoProgram = demoState->prog_postBlur;
 		a3shaderProgramActivate(currentDemoProgram->program);
 
@@ -342,19 +337,12 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 			a3framebufferActivate((bloomPhase == intro_phaseBlur && i == blurPasses - 1) ? NULL : &demoState->fbo_bloomPingPong[(i + 1) % 2]);
 			a3shaderProgramActivate(currentDemoProgram->program);
 
-			
-
 			//set horizontal uniform
 			a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { (i + 1) % 2 });
 
 			a3framebufferBindColorTexture(i == 0 ? demoState->fbo_brightness : &demoState->fbo_bloomPingPong[i % 2], a3tex_unit00, 0);
 
-			glBegin(GL_QUADS);
-			glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-			glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-			glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-			glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-			glEnd();
+			a3vertexDrawableActivateAndRender(demoState->draw_fsq);
 			a3framebufferDeactivate();
 		}
 	}
@@ -372,12 +360,7 @@ void a3intro_render(a3_DemoState const* demoState, a3_DemoMode0_Intro const* dem
 
 		a3shaderUniformSendInt(a3unif_single, currentDemoProgram->uIndex, 1, (int[]) { bloomPhase == intro_enableBloom ? 1 : 0 });
 
-		glBegin(GL_QUADS);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-		glEnd();
+		a3vertexDrawableActivateAndRender(demoState->draw_fsq);
 		a3framebufferDeactivate();
 	}
 

@@ -35,6 +35,11 @@ in vec4 vTexcoord_atlas;
 
 //based on https://learnopengl.com/Advanced-Lighting/Bloom
 
+float adjust(float inp) {
+	float a = inp + 0.1f;
+	return pow(a, 3.0f) / (pow(a, 3.0f) + pow(1.0f - a, 3.0f));
+}
+
 void main()
 {
 	vec4 result = texture(uImage00, vTexcoord_atlas.xy);
@@ -42,8 +47,15 @@ void main()
 
 	// check whether result is higher than some threshold, if so, output as bloom threshold color
 	float brightness = dot(result.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0)
-        BrightColor = vec4(result.rgb, 1.0);
+    if(brightness > 1.0) {
+		float mag = length(result);
+		float goalMag = adjust(mag);
+		vec3 scaled = result.rgb * (goalMag / mag);
+		BrightColor = vec4(scaled.rgb, 1.0f);
+	}
+        
     else
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+	//FragColor = vec4(1.0f);
+	//BrightColor = vec4(1.0f);
 }
